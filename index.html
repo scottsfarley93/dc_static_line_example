@@ -1,0 +1,69 @@
+<html>
+<head>
+  <title>Static Line Example</title>
+  <link rel='stylesheet' href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.1/dc.css" />
+
+  <style>
+  </style>
+</head>
+<body>
+
+<script src="crossfilter.min.js"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="dc.js"></script>
+
+
+<script>
+//load the data for the chart
+d3.csv("data.csv", function(data){
+    //format each record
+    data.forEach(function(d){
+      d.Age = +d.Age;
+      d.Temp = +d.Temp;
+      d.Frequency = +d.Frequency;
+    })
+    //apply the crossfilter to the dataset
+    var facts = crossfilter(data);
+    var all = facts.groupAll();
+    //create the frequency dimension
+    //bin together by 1s
+    var frequencyValue = facts.dimension(function(d){return Math.round(d.Frequency)});
+    //group together
+    var frequencyCount = frequencyValue.group().reduceSum(function(d){return d.Frequency});
+    // Create the chart
+    theChart = dc.barChart("body")
+    .width(750)
+    .height(400)
+      .margins({top: 10, right: 10, bottom: 20, left: 40})
+      .dimension(frequencyValue)
+      .group(frequencyCount)
+      .brushOn(false)
+      .x(d3.scale.linear().domain(d3.extent(data, function(d){return d.Age}))) // fit the x axis to the data
+      //add the static line
+      .on('renderlet', function(chart) {
+        //define the drawing function
+        lineFn = d3.svg.line()
+            //scale the curve to be on the x and y axes as the bar chart
+            //use the chart's internal scale chart.x() and chart.y()
+            .x(function(d) { return chart.x()(+d.Age); })
+            .y(function(d) { return chart.y()(+d.Temp); })
+            //get drawing context
+            var chartBody = chart.select('g.chart-body');
+            //bind the series data to the path
+            lineData = [data]//accepts an array
+            var path = chartBody.selectAll('path').data(lineData);
+            path.enter()
+              .append('path')
+              .attr('d',  lineFn)
+              //style the line
+              .style('fill', 'none')
+              .style('stroke','red')
+    }); //end renderlet function
+    //render and draw the chart
+    theChart.render();
+})
+</script>
+
+
+</body>
+</html>
