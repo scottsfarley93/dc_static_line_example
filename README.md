@@ -1,0 +1,2 @@
+# Static Line on DC.js Bar Chart
+Adding a static line with real data to a ```DC.js``` bar chart proved to be very difficult. Here's some example code to draw a line on top of a bar chart.  Make sure to use the ```on('renderlet')``` function to access the raw ```d3``` chart, and the chart's internal scales (accessed through ```chart.x()``` and ```chart.y()```). You'll get some weird positioning issues if you try to create your own ```d3.scale.linear()``` scales for the line axes.
